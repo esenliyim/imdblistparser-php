@@ -5,7 +5,7 @@
     colors="true"
     stopOnFailure="false">
     <testsuites>
-        <testsuite name="ImportedListTest">
+        <testsuite name="ListImporterTest">
             <directory>
                 tests
             </directory>

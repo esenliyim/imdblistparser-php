@@ -18,6 +18,8 @@ The `imdblistparser-php` package allows you to import the contents of publicly v
 
 - Can filter by genre, returning titles that either contain all of the specified genres or any of them
 
+- Can skip marshaling the list items into an array of film objects and get it as a 2D array of strings instead
+
 ## TODO
 
 - TESTS TESTS TESTS
@@ -32,13 +34,13 @@ Can take several seconds to process when initialized with a user ID. That's beca
 use Esenliyim\Listimporter\ListImporter;
 
 // To import via listId
-$listIdImporter = new ListImporter("ls092287578");
+$listIdImporter = new ListImporter("<ls****>");
 $importedFromListId = $importer->fetchList();
 
 $films = $importedFromListId->filmsOnly();
 
 // Or via user ID
-$userIdImporter = new ListImporter("ur115031818");
+$userIdImporter = new ListImporter("<ur****>");
 $importedFromUserId = $importer->fetchList();
 
 $upcoming = $importedFromUserId->upcomingOnly();

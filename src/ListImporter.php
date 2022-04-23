@@ -2,12 +2,15 @@
 namespace Esenliyim\Listimporter;
 
 use DOMDocument;
-use Error;
+use Esenliyim\Listimporter\Classes\Client;
 use Esenliyim\Listimporter\Classes\ImportedList;
-
-define("ACCEPTED_IDS", '/(^ur\d+$)|(^ls\d+$)/');
+use Esenliyim\Listimporter\Exceptions\ImdbRequestException;
+use Esenliyim\Listimporter\Exceptions\InvalidImdbIdException;
+use Esenliyim\Listimporter\Exceptions\PrivateListException;
 
 class ListImporter {
+
+    const ACCEPTED_IDS =  '/(^ur\d+$)|(^ls\d+$)/';
 
     protected $type;
     protected $target;
@@ -15,15 +18,16 @@ class ListImporter {
     protected $importedParsed = null;
     protected $fetched = false;
 
-    public function __construct($target)
+    public function __construct($target, Client $client = null)
     {
-        preg_match(ACCEPTED_IDS, $target, $match);
+        preg_match(static::ACCEPTED_IDS, $target, $match);
         if (count($match) != 0) {
             $this->type = isset($match[2]) ? 'list' : 'user';
         } else {
-            throw new Error("Invalid target");
+            throw new InvalidImdbIdException("input ID is not a valid user or list ID");
         }
         $this->target = $target;
+        $this->client = $client ?: new Client();
     }
 
     public function getParsed(): ImportedList
@@ -67,19 +71,26 @@ class ListImporter {
 
     private function _getListIdFromUserId(string $id): string
     {
-        $url = "https://www.imdb.com/user/$id/watchlist";
-        $input = fopen($url, 'r');
+        $input = $this->client->fetchWithUserId($id);
         if (!$input) {
-            throw new Error("could not get list id");
+            throw new ImdbRequestException("could not get list id");
         } else {
             return $this->_extractListIdFromRawHtml($input);
         }
+    }
+
+    private function _checkIfPrivate(DOMDocument $html): bool
+    {
+        return (bool) $html->getElementById('unavailable');
     }
 
     private function _extractListIdFromRawHtml($raw): string
     {
         $html = new DOMDocument();
         $html->loadHTML(stream_get_contents($raw));
+        if ($this->_checkIfPrivate($html)) {
+            throw new PrivateListException("the watchlist of $this->target is private");
+        }
         $metas = $html->getElementsByTagName('meta');
         
         foreach ($metas as $meta)
@@ -91,15 +102,17 @@ class ListImporter {
                 return $listId;
             }
         }
-        throw new Error("could not get list id");
+        throw new ImdbRequestException("could not find listId");
     }
 
     private function _getList(string $id): array
     {
-        $url = "https://www.imdb.com/list/$id/export";
-        $input = fopen($url, 'r');
+        $input = $this->client->fetchWithListId($id);
         if (!$input) {
-            throw new Error("Could not fetch list");
+            if (str_contains($http_response_header[0], "403")) {
+                throw new PrivateListException("list $id is private");
+            }
+            throw new ImdbRequestException("Could not fetch list");
         }
         $gotten = stream_get_contents($input);
         $arrayified = $this->_arrayify($gotten);
@@ -127,10 +140,5 @@ class ListImporter {
             array_pop($arrayified);
         }
         return $arrayified;
-    }
-
-    public function getType(): string
-    {
-        return $this->type;
     }
 }
