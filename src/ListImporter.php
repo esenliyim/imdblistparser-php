@@ -1,23 +1,21 @@
 <?php
 namespace Esenliyim\Listimporter;
 
-include('./src/classes/Film.php');
-include('./src/classes/ImportedList.php');
-
-use DateTime;
 use DOMDocument;
 use Error;
-use Esenliyim\Listimporter\Classes\Film;
 use Esenliyim\Listimporter\Classes\ImportedList;
 
 define("ACCEPTED_IDS", '/(^ur\d+$)|(^ls\d+$)/');
 
-class Listimporter {
+class ListImporter {
 
     protected $type;
     protected $target;
+    protected $importedRaw;
+    protected $importedParsed = null;
+    protected $fetched = false;
 
-    public function __construct($target, $options = null)
+    public function __construct($target)
     {
         preg_match(ACCEPTED_IDS, $target, $match);
         if (count($match) != 0) {
@@ -28,20 +26,43 @@ class Listimporter {
         $this->target = $target;
     }
 
-    public function fetchList(): ImportedList
+    public function getParsed(): ImportedList
     {
-        return new ImportedList($this->type === 'list' ? $this->_fetchFromListId() : $this->_fetchFromUserId());
+        if (!$this->importedParsed) {
+            $this->importedParsed = new ImportedList($this->getRaw());
+        }
+        return $this->importedParsed;
     }
 
-    private function _fetchFromListId()
+    public function getRaw(): array
     {
-        return $this->_getList($this->target);
+        if (!$this->fetched) {
+            $this->_import();
+        }
+        return $this->importedRaw;
     }
 
-    private function _fetchFromUserId()
+    public function refetch(): Listimporter
+    {
+        $this->_import();
+        return $this;
+    }
+
+    private function _import(): void
+    {
+        $this->type === 'list' ? $this->_fetchFromListId() : $this->_fetchFromUserId();
+        $this->fetched = true;
+    }
+
+    private function _fetchFromListId(): void
+    {
+        $this->importedRaw = $this->_getList($this->target);
+    }
+
+    private function _fetchFromUserId(): void
     {
         $listId = $this->_getListIdFromUserId($this->target);
-        return $this->_getList($listId);
+        $this->importedRaw = $this->_getList($listId);
     }
 
     private function _getListIdFromUserId(string $id): string
@@ -73,7 +94,7 @@ class Listimporter {
         throw new Error("could not get list id");
     }
 
-    private function _getList(string $id)
+    private function _getList(string $id): array
     {
         $url = "https://www.imdb.com/list/$id/export";
         $input = fopen($url, 'r');
@@ -113,12 +134,3 @@ class Listimporter {
         return $this->type;
     }
 }
-
-error_reporting(1);
-
-$args = getopt("l:");
-
-$bok = new Listimporter($args['l']);
-$annen = $bok->fetchList();
-
-echo count($annen->filterByGenres(["Action", "Drama"], false));
