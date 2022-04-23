@@ -1,0 +1,20 @@
+{
+    "name": "esenliyim/listimporter",
+    "description": "Import lists from various websites",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Esenliyim\\Listimporter\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Emre Senliyim",
+            "email": "esenliyim@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1"
+    }
+}
