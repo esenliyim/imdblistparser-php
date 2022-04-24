@@ -3,3 +3,4 @@
 phpunit.xml export-ignore
 .phpunit.result.cache export-ignore
 tests/ export-ignore
+tests/data/ linguist-vendored=false
