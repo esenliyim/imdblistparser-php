@@ -22,7 +22,9 @@ The `imdblistparser-php` package allows you to import the contents of publicly v
 
 ## Notes
 
-Can take several seconds to process when initialized with a user ID. That's because it requires 2 HTTP requests compared to the single one when importing directly via listId, and IMDb can take a while to respond to that one particular extra request. Providing the watchlist's listId will make it significantly faster, if you have the ID of course.
+Can take several seconds to import a list when initialized with a user ID. That's because it requires 2 HTTP requests compared to the single one when importing directly via listId, and IMDb can take a while to respond to that one particular extra request. Providing the watchlist's listId will make it significantly faster, if you have the ID of course.
+
+If you have access to the account that owns the watchlist, you can get the watchlist's listId by clicking 'EDIT' on IMDb. The URL in the browser's address bar will then contain the listId.
 
 ## Example usage
 

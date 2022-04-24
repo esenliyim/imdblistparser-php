@@ -31,11 +31,11 @@ enum Prop: string {
             Prop::DateRated => $value ?: new DateTime($value),
             Prop::DirectedBy => self::_toArray($value),
             Prop::YouRated => $value ?: intval($value),
-            Prop::Rating => floatval($value),
+            Prop::Rating => $value ?: floatval($value),
             Prop::Runtime => intval($value),
             Prop::Year => $value ?: intval($value),
             Prop::Genres => self::_toArray($value),
-            Prop::VoteCount => intval($value),
+            Prop::VoteCount => $value ?: intval($value),
             Prop::ReleaseDate => $value ?: new DateTime($value),
             default => $value,
         };
