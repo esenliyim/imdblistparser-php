@@ -1,10 +1,10 @@
-# imdblistparser-php
+# listimporter
 
 Imports user (watch)lists from imdb.
 
 ## About
 
-The `imdblistparser-php` package allows you to import the contents of publicly visible user lists from IMDb.
+The `listimporter` package allows you to import the contents of publicly visible user lists from IMDb.
 
 ## Features
 
