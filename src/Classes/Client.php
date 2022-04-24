@@ -14,6 +14,12 @@ class Client
     {
         $url = str_replace("{listId}", $id, static::LIST_URL_TEMPLATE);
         $input = fopen($url, 'r');
+        if (!$input) {
+            if (str_contains($http_response_header[0], "403")) {
+                throw new PrivateListException("list $id is private");
+            }
+            throw new ImdbRequestException("Could not fetch list");
+        }
         return $input;
     }
 
@@ -21,6 +27,9 @@ class Client
     {
         $url = str_replace("{userId}", $id, static::WATCHLIST_TEMPLATE);
         $input = fopen($url, 'r');
+        if (!$input) {
+            throw new ImdbRequestException("could not get list id");
+        }
         return $input;
     }
 }

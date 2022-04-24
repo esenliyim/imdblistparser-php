@@ -18,13 +18,13 @@ class ListImporter {
     protected $importedParsed = null;
     protected $fetched = false;
 
-    public function __construct($target, Client $client = null)
+    public function __construct(string $target, Client $client = null)
     {
-        preg_match(static::ACCEPTED_IDS, $target, $match);
+        preg_match(static::ACCEPTED_IDS, trim($target), $match);
         if (count($match) != 0) {
             $this->type = isset($match[2]) ? 'list' : 'user';
         } else {
-            throw new InvalidImdbIdException("input ID is not a valid user or list ID");
+            throw new InvalidImdbIdException("'$target' is not a valid user or list ID");
         }
         $this->target = $target;
         $this->client = $client ?: new Client();
@@ -72,11 +72,7 @@ class ListImporter {
     private function _getListIdFromUserId(string $id): string
     {
         $input = $this->client->fetchWithUserId($id);
-        if (!$input) {
-            throw new ImdbRequestException("could not get list id");
-        } else {
-            return $this->_extractListIdFromRawHtml($input);
-        }
+        return $this->_extractListIdFromRawHtml($input);
     }
 
     private function _checkIfPrivate(DOMDocument $html): bool
@@ -89,7 +85,7 @@ class ListImporter {
         $html = new DOMDocument();
         $html->loadHTML(stream_get_contents($raw));
         if ($this->_checkIfPrivate($html)) {
-            throw new PrivateListException("the watchlist of $this->target is private");
+            throw new PrivateListException("the watchlist of '$this->target' is private");
         }
         $metas = $html->getElementsByTagName('meta');
         
@@ -102,18 +98,12 @@ class ListImporter {
                 return $listId;
             }
         }
-        throw new ImdbRequestException("could not find listId");
+        throw new ImdbRequestException("could not find listId in the IMDb response");
     }
 
     private function _getList(string $id): array
     {
         $input = $this->client->fetchWithListId($id);
-        if (!$input) {
-            if (str_contains($http_response_header[0], "403")) {
-                throw new PrivateListException("list $id is private");
-            }
-            throw new ImdbRequestException("Could not fetch list");
-        }
         $gotten = stream_get_contents($input);
         $arrayified = $this->_arrayify($gotten);
         return $this->_parseFetchedCsv($arrayified);
