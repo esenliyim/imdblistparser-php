@@ -84,6 +84,11 @@ class ImportedList implements IteratorAggregate, Countable {
         return static::ALL_GENRES;
     }
 
+    public function getAll(): array
+    {
+        return $this->list;
+    }
+
     public function setGenreFilter(array $genres, bool $or = false): ImportedList {
         $accepted = array_intersect($genres, static::ALL_GENRES);
         if(empty($accepted)) {
